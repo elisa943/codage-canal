@@ -48,25 +48,41 @@ function u = viterbi_decode(y, treillis)
         
         indice = indice + 1;
     end
+
+    % Fermeture
+    while indice<= L+2 && not(isempty(find(branches(:,indice) == inf, 1)))
+        for i = (find(branches(:,indice-1) ~= inf)).'
+            next_state=etat_fermeture(i);
+            output_bits = int2bit(outputs(i, j), ns).';
+            cout = sum((y(ns * (indice - 2) + 1 : ns * (indice - 1)) - output_bits));
+            nouveau_cout = branches(i,indice-1) + cout;
+            % Mise à jour 
+            if nouveau_cout < branches(next_state+1,indice)
+                branches(next_state+1,indice) = nouveau_cout;
+                predecessors(next_state+1,indice) = i;
+            end
+        end
+        indice=indice+1;
+    end
+
     disp(branches);
+    disp(predecessors);
 
     % Chemin inverse
     u = [];
-    [~, state_2] = min(branches(:, L));
-    for n = L:-1:2
-        state_1 = predecessors(state_2, n);                                     % Remonte au prédécesseur
-        disp("Output :")
-        disp(state_1);
-        disp(state_2);  
-        u = cat(2, outputStateToState(outputs, ns, state_1, state_2), u);       % Ajoute les bits 
+    [~, state_2] = min(branches(:, L+2));
+    state_1 = predecessors(state_2, L+2);
+    for n = L+1:-1:2  
+        u = cat(2, StateToState(nextStates, ns, state_1, state_2), u);          % Ajoute les bits 
         state_2 = state_1;                                                      % Passe à l'état précédent
+        state_1 = predecessors(state_1, n);                                     % Remonte au prédécesseur
     end
 end
 
-function bits = outputStateToState(outputs, ns, etat_initial, etat_arrivee)
+function bits = StateToState(nextStates, ns, etat_initial, etat_arrivee)
     for i=1:2
-        if outputs(etat_initial, i) == etat_arrivee
-            bits = int2bit(i, ns).';
+        if nextStates(etat_initial, i) + 1 == etat_arrivee
+            bits = int2bit(i-1, ns).';
             return;
         end
     end
