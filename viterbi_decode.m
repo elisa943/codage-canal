@@ -7,8 +7,8 @@ function u = viterbi_decode(y, treillis)
     K = L - m;
     nextStates = treillis.nextStates;
     outputs = treillis.outputs;
-    branches = -inf(L + 1, pow2(m));
-    predecessors = zeros(L + 1, pow2(m));
+    branches = -inf(pow2(m),L+1);
+    predecessors = zeros(pow2(m),L+1);
 
     % Initialisation de l'état initial (état 0)
     etat_initial = 1; 
@@ -16,22 +16,25 @@ function u = viterbi_decode(y, treillis)
     indice = 2;
 
     % Parcours 
-    while not(isempty(find(branches(indice, :) == -inf, 1))) % Tant que tous les états n'ont pas été atteints
-        for i = find(branches(indice - 1, :) ~= -inf)        % Pour chaque état déjà atteint
-            for j = 1:2                                      % Pour chaque transition possible
+    while not(isempty(find(branches(:,indice) == -inf, 1))) % Tant que tous les états n'ont pas été atteints
+        for i = find(branches(:,indice-1) ~= -inf)          % Pour chaque état déjà atteint
+            for j = 1:2 
+                disp(outputs(i, j));% Pour chaque transition possible
                 next_state = nextStates(i, j);
                 output_bits = int2bit(outputs(i, j), ns);
                 cout = sum(abs(y(ns * (indice - 2) + 1 : ns * (indice - 1)) - output_bits));
-                nouveau_cout = branches(indice - 1, i) + cout;
+                nouveau_cout = branches(i,indice-1) + cout;
 
                 % Mise à jour 
-                if nouveau_cout < branches(indice, next_state)
-                    branches(indice, next_state) = nouveau_cout;
-                    predecessors(indice, next_state) = i;
+                %disp(next_state)
+                if nouveau_cout < branches(next_state+1,indice)
+                    branches(next_state,indice) = nouveau_cout;
+                    predecessors(next_state,indice) = i;
                 end
             end
         end
         indice = indice + 1;
+        %disp(indice);
     end
 
     % Parcours des sections 
