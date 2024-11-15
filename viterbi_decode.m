@@ -7,9 +7,23 @@ function u = viterbi_decode(y, treillis)
     K = L - m;
     nextStates = treillis.nextStates;
     outputs = treillis.outputs;
-    branches = inf(pow2(m), L);
-    predecessors = zeros(pow2(m), L);
-
+    branches = inf(pow2(m),L+2);
+    predecessors = zeros(pow2(m),L+2);
+    etat_fermeture = ones(1,4);
+    for i=1:4
+        if nextStates(i,1)==0 || nextStates(i,2)==0
+            etat_fermeture(i)=0;
+        end
+    end
+    for i=1:4
+        if etat_fermeture(i)~=0
+            for j=1:2
+                if etat_fermeture(nextStates(i,j))==0
+                    etat_fermeture(i)=nextStates(i,j);
+                end
+            end
+        end
+    end
     % Initialisation de l'état initial (état 0)
     etat_initial = 1; 
     branches(1, etat_initial) = 0;                           % coût initial
