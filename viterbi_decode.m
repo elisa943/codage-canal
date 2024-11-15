@@ -3,12 +3,12 @@ function u = viterbi_decode(y, treillis)
     nb = log2(treillis.numInputSymbols);
     ns = log2(treillis.numOutputSymbols);
     m = log2(treillis.numStates);
-    L = floor(length(y) / ns);
+    L = floor(length(y) / ns)-2;
     K = L - m;
     nextStates = treillis.nextStates;
     outputs = treillis.outputs;
-    branches = -inf(pow2(m),L+1);
-    predecessors = zeros(pow2(m),L+1);
+    branches = -inf(pow2(m),L);
+    predecessors = zeros(pow2(m),L);
 
     % Initialisation de l'état initial (état 0)
     etat_initial = 1; 
@@ -16,20 +16,25 @@ function u = viterbi_decode(y, treillis)
     indice = 2;
 
     % Parcours 
-    while not(isempty(find(branches(:,indice) == -inf, 1))) % Tant que tous les états n'ont pas été atteints
-        for i = find(branches(:,indice-1) ~= -inf)          % Pour chaque état déjà atteint
+    while indice<= L && not(isempty(find(branches(:,indice) == -inf, 1))) % Tant que tous les états n'ont pas été atteints
+        for i = (find(branches(:,indice-1) ~= -inf)).'    
+            %disp(":");
+            %disp(i);% Pour chaque état déjà atteint
+            disp(branches);
             for j = 1:2 
+                disp(i);
                 disp(outputs(i, j));% Pour chaque transition possible
                 next_state = nextStates(i, j);
-                output_bits = int2bit(outputs(i, j), ns);
-                cout = sum(abs(y(ns * (indice - 2) + 1 : ns * (indice - 1)) - output_bits));
+                output_bits = int2bit(outputs(i, j), ns).';
+                cout = sum((y(ns * (indice - 2) + 1 : ns * (indice - 1)) - output_bits));
                 nouveau_cout = branches(i,indice-1) + cout;
-
+                %disp(next_state);
+                %disp(cout);
+                %disp(nouveau_cout);
                 % Mise à jour 
-                %disp(next_state)
-                if nouveau_cout < branches(next_state+1,indice)
-                    branches(next_state,indice) = nouveau_cout;
-                    predecessors(next_state,indice) = i;
+                if nouveau_cout > branches(next_state+1,indice)
+                    branches(next_state+1,indice) = nouveau_cout;
+                    predecessors(next_state+1,indice) = i;
                 end
             end
         end
