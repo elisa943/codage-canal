@@ -3,8 +3,7 @@ function u = viterbi_decode(y, treillis)
     nb = log2(treillis.numInputSymbols);
     ns = log2(treillis.numOutputSymbols);
     m = log2(treillis.numStates);
-    L = floor(length(y) / ns)-2;
-    K = L - m;
+    L = floor(length(y)/ns)-m;
     nextStates = treillis.nextStates;
     outputs = treillis.outputs;
     branches = inf(pow2(m),L+2);
@@ -46,7 +45,6 @@ function u = viterbi_decode(y, treillis)
                 end
             end
         end
-        
         indice = indice + 1;
     end
 
@@ -66,24 +64,21 @@ function u = viterbi_decode(y, treillis)
         indice=indice+1;
     end
 
-    disp(branches);
-    disp(predecessors);
-
     % Chemin inverse
     u = [];
     [~, state_2] = min(branches(:, L+2));
     state_1 = predecessors(state_2, L+2);
-    for n = L+1:-1:2  
-        u = cat(2, StateToState(nextStates, ns, state_1, state_2), u);          % Ajoute les bits 
+    for n = L+1:-1:1  
+        u = cat(2, StateToState(nextStates, state_1, state_2), u);          % Ajoute les bits 
         state_2 = state_1;                                                      % Passe à l'état précédent
         state_1 = predecessors(state_1, n);                                     % Remonte au prédécesseur
     end
 end
 
-function bits = StateToState(nextStates, ns, etat_initial, etat_arrivee)
+function bits = StateToState(nextStates, etat_initial, etat_arrivee)
     for i=1:2
         if nextStates(etat_initial, i) + 1 == etat_arrivee
-            bits = int2bit(i-1, ns).';
+            bits = i-1;
             return;
         end
     end
