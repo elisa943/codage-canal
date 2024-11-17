@@ -8,13 +8,13 @@ function u = viterbi_decode(y, treillis)
     outputs = treillis.outputs;
     branches = inf(pow2(m),L+2);
     predecessors = zeros(pow2(m),L+2);
-    etat_fermeture = ones(1,4);      % Etat vers lequel chaque état va aller lors de la fermeture
-    for i=1:4
+    etat_fermeture = ones(1,pow2(m));
+    for i=1:pow2(m)
         if nextStates(i,1)==0 || nextStates(i,2)==0
             etat_fermeture(i)=0;
         end
     end
-    for i=1:4
+    for i=1:pow2(m)
         if etat_fermeture(i)~=0
             for j=1:2
                 if etat_fermeture(nextStates(i,j))==0
@@ -23,14 +23,15 @@ function u = viterbi_decode(y, treillis)
             end
         end
     end
+    
     % Initialisation de l'état initial (état 0)
     etat_initial = 1; 
-    branches(1, etat_initial) = 0;                           % coût initial
+    branches(1, etat_initial) = 0;                                                          % coût initial
     indice = 2;
 
     % Parcours 
-    while indice <= L && not(isempty(find(branches(:, indice) == inf, 1)))                     % Tant que tous les états n'ont pas été atteints 
-        for i = find(branches(:, indice - 1) ~= inf).'                                                               % Pour chaque état déjà atteint (à l'itération précédente)
+    while indice <= L && not(isempty(find(branches(:, indice) == inf, 1)))                  % Tant que tous les états n'ont pas été atteints 
+        for i = find(branches(:, indice - 1) ~= inf).'                                      % Pour chaque état déjà atteint (à l'itération précédente)
             for j = 1:2                                                                     % Pour chaque transition possible
                 next_state = nextStates(i, j);                                              % Prochain état  
                 output_bits = int2bit(outputs(i, j), ns);                                   % output en bits
