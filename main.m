@@ -2,7 +2,7 @@
 clear; close all; clc
 
 u=[1 1 0 1 0];
-trellis=poly2trellis(3,[7,5],7);
+trellis=poly2trellis(3,[7,5],7); % Encodeur (1, 5/7)_8 
 c=cc_encode(u,trellis);
 y=(c*-2)+1;
 dc=viterbi_decode(y,trellis);
@@ -10,6 +10,8 @@ disp("c : ");
 disp(c);
 disp("y : ");
 disp(y); 
+disp("u : ");
+disp(u);
 disp("dc : ");
 disp(dc(1:length(u)));
 % graph(1,1,:)=[0 20];
