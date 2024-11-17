@@ -8,7 +8,7 @@ function u = viterbi_decode(y, treillis)
     outputs = treillis.outputs;
     branches = inf(pow2(m),L+2);
     predecessors = zeros(pow2(m),L+2);
-    etat_fermeture = ones(1,4);
+    etat_fermeture = ones(1,4);      % Etat vers lequel chaque état va aller lors de la fermeture
     for i=1:4
         if nextStates(i,1)==0 || nextStates(i,2)==0
             etat_fermeture(i)=0;
