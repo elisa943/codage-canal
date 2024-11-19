@@ -25,18 +25,18 @@ sigma2 = 1./(EbN0);
 
 %% Simulation de la chaine de communication
 trell = poly2trellis(3,[7,5],7);
-%trell=cat(2,trell,poly2trellis(3,[5,7]));
+trell=cat(2,trell,poly2trellis(3,[5,7]));
 %trell=cat(2,trell,poly2trellis(4,[13,15]));
 %trell=cat(2,trell,poly2trellis(3,[133,171]));
 taux=zeros(4,length(sigma2));
 
-for j=1:1 %4
+for j=1:length(trell)
     for k=1:length(sigma2)
         nb_errors=0;
         sigma=sigma2(k);
         w=0;
         while nb_errors<100
-            u=randi([0 1],1,1024);
+            u=randi([0 1],1,K);
             
             %Encodeur C
             trellis=trell(j);
@@ -70,6 +70,15 @@ TEB = zeros(1,length(EbN0dB));
 Pb_u = qfunc(sqrt(2*EbN0)); % Probabilité d'erreur non codée
 Pe_u = 1-(1-Pb_u).^K;
 
+%% Méthode de l'impulsion 
+d0 = 1; 
+d1 = 100; 
+TEP_impulsion = [];
+delta = 8; 
+for i=1:length(EbN0dB)-delta
+    TEP_impulsion = cat(2, TEP_impulsion, impulsion(d0, d1, trell(1), EbN0dB(i+delta)));
+end
+
 %% Préparation de l'affichage
 figure; 
 semilogy(EbN0dB,Pb_u,'--', 'LineWidth',1.5,'DisplayName','Pb (BPSK théorique)');
@@ -77,9 +86,10 @@ hold all
 semilogy(EbN0dB,Pe_u,'--', 'LineWidth',1.5,'DisplayName','Pe (BPSK théorique)');
 hTEB = semilogy(EbN0dB,TEB,'LineWidth',1.5,'XDataSource','EbN0dB', 'YDataSource','TEB', 'DisplayName','TEB Monte Carlo');
 hTEP = semilogy(EbN0dB,TEP,'LineWidth',1.5,'XDataSource','EbN0dB', 'YDataSource','TEP', 'DisplayName','TEP Monte Carlo');
+semilogy(EbN0dB(delta+1:end), TEP_impulsion, 'LineWidth',1.5, 'DisplayName',"TEB (Méthode de l'impulsion)");
 semilogy(EbN0dB,taux(1,:), 'LineWidth',1.5,'DisplayName','(1,5/7)');
 %semilogy(EbN0dB,taux(1,:), 'LineWidth',1.5,'DisplayName','(2,3)');
-%semilogy(EbN0dB,taux(2,:), 'LineWidth',1.5,'DisplayName','(5,7)');
+semilogy(EbN0dB,taux(2,:), 'LineWidth',1.5,'DisplayName','(5,7)');
 %semilogy(EbN0dB,taux(3,:), 'LineWidth',1.5,'DisplayName','(13,15)');
 %semilogy(EbN0dB,taux(4,:), 'LineWidth',1.5,'DisplayName','(133,171)');
 ylim([1e-6 1])

@@ -81,8 +81,8 @@ end
 function bits = StateToState(nextStates, etat_initial, etat_arrivee)           
     % Renvoie les bits entre deux états si la transition existe 
     % Sinon renvoie null
-    for i=1:2
-        if nextStates(etat_initial, i) + 1 == etat_arrivee
+    for i=1:2                                                                   % Pour chaque transition
+        if nextStates(etat_initial, i) + 1 == etat_arrivee                      % Si la transition existe
             bits = i-1;
             return;
         end
