@@ -2,8 +2,8 @@ clear; close all; clc
 
 %% Parametres
 % -------------------------------------------------------------------------
-K = 100; % Nombre de bits de message
-N = 100; % Nombre de bits codés par trame (codée)
+K = 5; % Nombre de bits de message
+N = 5; % Nombre de bits codés par trame (codée)
 
 R = K/N; % Rendement de la communication
 
@@ -31,36 +31,37 @@ trell=cat(2,trell,poly2trellis(7,[133,171]));
 taux=zeros(4,length(sigma2));
 
 for j=1:length(trell)
-    for k=1:length(sigma2)
-        nb_errors=0;
-        sigma=sigma2(k);
-        w=0;
-        while nb_errors<100
+    %for k=1:length(sigma2)
+        %nb_errors=0;
+        %sigma=sigma2(k);
+        %w=0;
+        %while nb_errors<100
             u=randi([0 1],1,K);
             
             %Encodeur C
-            trellis=trell(j);
+            trellis=trell(2);
             c=cc_encode(u,trellis);
             
             %BPSK
-            x=mod_BPSK(c);
+            %x=mod_BPSK(c);
             
             %Canal
-            p=exp(-1/(2*sigma))/(sqrt(2*pi*sigma));
-            y=canal(x,p);
+            %p=exp(-1/(2*sigma))/(sqrt(2*pi*sigma));
+            %y=canal(x,p);
             
             %Demod PSK
-            Lc=demod_BPSK(y);
+            %Lc=demod_BPSK(y);
             
             %Decodeur de C
-            d=(Lc*-2)+1;
+            d=(c*-2)+1;
+            %d=c;
             uf=viterbi_decode(d,trellis);
-            nb_errors=nb_errors+sum(abs(uf(1:length(u))-u));
-            w=w+1;
-        end
-        disp(k);
-        taux(j,k)=nb_errors/(w*length(u));
-    end
+            %nb_errors=nb_errors+sum(abs(uf(1:length(u))-u));
+            %w=w+1;
+        %end
+        disp(sum(uf(1:K)~=u));
+        %taux(j,k)=nb_errors/(w*length(u));
+    %end
 end
 
 %% Initialisation des vecteurs de résultats
@@ -125,7 +126,7 @@ for iSNR = 1:length(EbN0dB)
         %% Emetteur
         tx_tic  = tic;                 % Mesure du débit d'encodage
         u       = randi([0,1],K,1);    % Génération du message aléatoire
-        c       = cc_encode(u,trellis);                   % Encodage
+        c       = cc_encode(u,trellis);% Encodage
         x       = 1-2*c;               % Modulation QPSK
         T_tx    = T_tx+toc(tx_tic);    % Mesure du débit d'encodage
         debitTX = pqtNbr*K/8/T_tx/1e6;

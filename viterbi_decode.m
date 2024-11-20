@@ -3,7 +3,7 @@ function u = viterbi_decode(y, treillis)
     nb = log2(treillis.numInputSymbols);
     ns = log2(treillis.numOutputSymbols);
     m = log2(treillis.numStates);
-    L = floor(length(y)/ns)-m;
+    L = floor(length(y)/ns)-m+1;
     nextStates = treillis.nextStates;
     outputs = treillis.outputs;
 
@@ -59,8 +59,8 @@ function u = viterbi_decode(y, treillis)
     while indice <= L+m && not(isempty(find(branches(:,indice) == inf, 1)))                 % Tant que tous les états n'ont pas été atteints
         for i = (find(branches(:,indice - 1) ~= inf)).'                                     % Pour chaque état déjà atteint (à l'itération précédente)
             next_state = etat_fermeture(i);                                                 % prochain état
-            output_bits = int2bit(outputs(i, j), ns).';                                     % output en bits
-            cout = sum((y(ns * (indice - 2) + 1 : ns * (indice - 1)) - output_bits));       
+            output_bits = int2bit(outputs(i, StateToState(nextStates,i,next_state+1)+1), ns).';                                     % output en bits
+            cout = sum((y(ns * (indice - 2) + 1 : ns * (indice - 1)) .* output_bits));       
             nouveau_cout = branches(i,indice-1) + cout;                                     % nouveau coût   
             
             % Mise à jour 
@@ -71,6 +71,8 @@ function u = viterbi_decode(y, treillis)
         end
         indice=indice+1;
     end
+    disp(predecessors)
+    disp(branches)
     % Chemin inverse
     u = [];
     [~, state_2] = min(branches(:, L+m));                                       % état final
