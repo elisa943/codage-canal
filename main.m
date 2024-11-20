@@ -26,12 +26,12 @@ sigma2 = 1./(EbN0);
 %% Construction des trellis
 disp("Construction des trellis");
 trell = [];
-trell=cat(2, trell,poly2trellis(2, [2, 3]));        % Encodeur (2, 3)
-trell=cat(2,trell,poly2trellis(3,[5,7]));           % Encodeur (5, 7)
-trell=cat(2,trell,poly2trellis(4,[13,15]));         % Encodeur (13, 15)
-trell=cat(2,trell,poly2trellis(7,[133,171]));       % Encodeur (133, 171)
+% trell=cat(2, trell,poly2trellis(2, [2, 3]));        % Encodeur (2, 3)
+% trell=cat(2,trell,poly2trellis(3,[5,7]));           % Encodeur (5, 7)
+% trell=cat(2,trell,poly2trellis(4,[13,15]));         % Encodeur (13, 15)
+% trell=cat(2,trell,poly2trellis(7,[133,171]));       % Encodeur (133, 171)
 
-%trell=cat(2,trell,poly2trellis(3,[7,5],7));        % Encodeur (1, 5/7) 
+trell=cat(2,trell,poly2trellis(3,[7,5],7));        % Encodeur (1, 5/7) 
 %trell=cat(2,trell,poly2trellis(4, [15,13], 15));   % Encodeur (1, 13/15)
 
 %% Initialisation des vecteurs de résultats
@@ -42,12 +42,11 @@ Pb_u = qfunc(sqrt(2*EbN0)); % Probabilité d'erreur non codée
 Pe_u = 1-(1-Pb_u).^K;
 
 %% Méthode de l'impulsion pour chaque trellis 
-% Pour gagner du temps, nous avons sauvegardé les résultats obtenus pour chaque trellis dans
+% Pour gagner du temps, nous avons sauvegardé les résultats obtenus pour le trellis 1 dans 
 % le fichier 'TEP_impulsion.mat'. Nous les chargeons ici pour les afficher.
-
 disp("Méthode de l'impulsion");
-%load('TEP_impulsion.mat');
-
+load('TEP_impulsion.mat');
+%{
 TEP_impulsion = [];
 delta = 12; 
 d0 = 1; 
@@ -58,7 +57,7 @@ for i=1:1
     end
 end
 save('TEP_impulsion.mat', 'TEP_impulsion', 'delta');
-
+%}
 
 %% Préparation de l'affichage
 figure; 
@@ -67,7 +66,7 @@ hold all
 semilogy(EbN0dB,Pe_u,'--', 'LineWidth',1.5,'DisplayName','Pe (BPSK théorique)');
 hTEB = semilogy(EbN0dB,TEB,'LineWidth',1.5,'XDataSource','EbN0dB', 'YDataSource','TEB', 'DisplayName','TEB Monte Carlo');
 hTEP = semilogy(EbN0dB,TEP,'LineWidth',1.5,'XDataSource','EbN0dB', 'YDataSource','TEP', 'DisplayName','TEP Monte Carlo');
-semilogy(EbN0dB(delta+1:end), TEP_impulsion(:, 1), 'LineWidth',1.5, 'Marker', '*', 'DisplayName',"TEB (Méthode de l'impulsion)");
+semilogy(EbN0dB(delta+1:end), TEP_impulsion, 'LineWidth',1.5, 'Marker', '*', 'DisplayName',"TEB (Méthode de l'impulsion)");
 %semilogy(EbN0dB(delta+1:end), TEP_impulsion(:, 2), 'LineWidth',1.5, 'Marker', '*', 'DisplayName',"TEB (Méthode de l'impulsion)");
 %semilogy(EbN0dB(delta+1:end), TEP_impulsion(:, 3), 'LineWidth',1.5, 'Marker', '*', 'DisplayName',"TEB (Méthode de l'impulsion)");
 %semilogy(EbN0dB(delta+1:end), TEP_impulsion(:, 4), 'LineWidth',1.5, 'Marker', '*', 'DisplayName',"TEB (Méthode de l'impulsion)");
@@ -85,7 +84,7 @@ msgFormat  =  '|   %7.2f  |   %9d   |  %9d |  %9d | %2.2e | %2.2e |  %10.2f MO/s
 fprintf(line      );
 fprintf(msg_header);
 fprintf(line      );
-trellis=trell(4);
+trellis=trell(1); % A modifier pour tester un autre trellis
 
 %% Simulation
 for iSNR = 1:length(EbN0dB)
