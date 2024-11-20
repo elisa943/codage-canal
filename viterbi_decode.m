@@ -8,24 +8,29 @@ function u = viterbi_decode(y, treillis)
     outputs = treillis.outputs;
 
     % Initialisation des variables
-    branches = inf(pow2(m),L+2);
-    predecessors = zeros(pow2(m),L+2);
+    branches = inf(pow2(m),L+m);
+    predecessors = zeros(pow2(m),L+m);
     etat_fermeture = ones(1,pow2(m));
+    etat_fermee_t = zeros(1,pow2(m));
     for i=1:pow2(m)
         if nextStates(i,1)==0 || nextStates(i,2)==0
             etat_fermeture(i)=0;
+            etat_fermee_t(i)=1;
         end
     end
-    for i=1:pow2(m)
-        if etat_fermeture(i)~=0
-            for j=1:2
-                if etat_fermeture(nextStates(i,j))==0
-                    etat_fermeture(i)=nextStates(i,j);
+    for k=2:m
+        for i=1:pow2(m)
+            if etat_fermee_t(i)==0
+                for j=1:2
+                    if etat_fermee_t(nextStates(i,j))>0 && etat_fermee_t(nextStates(i,j))<k
+                        etat_fermeture(i)=nextStates(i,j);
+                        etat_fermee_t(i)=k;
+                    end
                 end
             end
         end
     end
-    
+
     % Initialisation de l'état initial (état 0)
     etat_initial = 1; 
     branches(1, etat_initial) = 0;                                                          % coût initial
@@ -51,7 +56,7 @@ function u = viterbi_decode(y, treillis)
     end
 
     % Fermeture
-    while indice <= L+2 && not(isempty(find(branches(:,indice) == inf, 1)))                 % Tant que tous les états n'ont pas été atteints
+    while indice <= L+m && not(isempty(find(branches(:,indice) == inf, 1)))                 % Tant que tous les états n'ont pas été atteints
         for i = (find(branches(:,indice - 1) ~= inf)).'                                     % Pour chaque état déjà atteint (à l'itération précédente)
             next_state = etat_fermeture(i);                                                 % prochain état
             output_bits = int2bit(outputs(i, j), ns).';                                     % output en bits
@@ -66,12 +71,11 @@ function u = viterbi_decode(y, treillis)
         end
         indice=indice+1;
     end
-
     % Chemin inverse
     u = [];
-    [~, state_2] = min(branches(:, L+2));                                       % état final
-    state_1 = predecessors(state_2, L+2);                                       % prédécesseur de l'état final
-    for n = L+1:-1:1  
+    [~, state_2] = min(branches(:, L+m));                                       % état final
+    state_1 = predecessors(state_2, L+m);                                       % prédécesseur de l'état final
+    for n = L+m-1:-1:1
         u = cat(2, StateToState(nextStates, state_1, state_2), u);              % Ajoute les bits 
         state_2 = state_1;                                                      % Passe à l'état précédent
         state_1 = predecessors(state_1, n);                                     % Remonte au prédécesseur

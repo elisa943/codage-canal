@@ -2,8 +2,8 @@ clear; close all; clc
 
 %% Parametres
 % -------------------------------------------------------------------------
-K = 1024; % Nombre de bits de message
-N = 1024; % Nombre de bits codés par trame (codée)
+K = 100; % Nombre de bits de message
+N = 100; % Nombre de bits codés par trame (codée)
 
 R = K/N; % Rendement de la communication
 
@@ -24,10 +24,10 @@ sigmaz2 = 1./(2 * EsN0);  % Variance de bruit pour chaque EbN0
 sigma2 = 1./(EbN0);
 
 %% Simulation de la chaine de communication
-trell = poly2trellis(3,[7,5],7);
+trell = poly2trellis(2,[2,3]);
 trell=cat(2,trell,poly2trellis(3,[5,7]));
-%trell=cat(2,trell,poly2trellis(4,[13,15]));
-%trell=cat(2,trell,poly2trellis(3,[133,171]));
+trell=cat(2,trell,poly2trellis(4,[13,15]));
+trell=cat(2,trell,poly2trellis(7,[133,171]));
 taux=zeros(4,length(sigma2));
 
 for j=1:length(trell)
@@ -76,8 +76,9 @@ d1 = 100;
 TEP_impulsion = [];
 delta = 8; 
 for i=1:length(EbN0dB)-delta
-    TEP_impulsion = cat(2, TEP_impulsion, impulsion(d0, d1, trell(1), EbN0dB(i+delta)));
+    TEP_impulsion = cat(2, TEP_impulsion, impulsion(d0, d1, trell(3), EbN0dB(i+delta)));
 end
+disp(1);
 
 %% Préparation de l'affichage
 figure; 
@@ -86,7 +87,7 @@ hold all
 semilogy(EbN0dB,Pe_u,'--', 'LineWidth',1.5,'DisplayName','Pe (BPSK théorique)');
 hTEB = semilogy(EbN0dB,TEB,'LineWidth',1.5,'XDataSource','EbN0dB', 'YDataSource','TEB', 'DisplayName','TEB Monte Carlo');
 hTEP = semilogy(EbN0dB,TEP,'LineWidth',1.5,'XDataSource','EbN0dB', 'YDataSource','TEP', 'DisplayName','TEP Monte Carlo');
-semilogy(EbN0dB(delta+1:end), TEP_impulsion, 'LineWidth',1.5, 'DisplayName',"TEB (Méthode de l'impulsion)");
+%semilogy(EbN0dB(delta+1:end), TEP_impulsion, 'LineWidth',1.5, 'DisplayName',"TEB (Méthode de l'impulsion)");
 semilogy(EbN0dB,taux(1,:), 'LineWidth',1.5,'DisplayName','(1,5/7)');
 %semilogy(EbN0dB,taux(1,:), 'LineWidth',1.5,'DisplayName','(2,3)');
 semilogy(EbN0dB,taux(2,:), 'LineWidth',1.5,'DisplayName','(5,7)');
@@ -106,7 +107,7 @@ msgFormat  =  '|   %7.2f  |   %9d   |  %9d |  %9d | %2.2e | %2.2e |  %10.2f MO/s
 fprintf(line      );
 fprintf(msg_header);
 fprintf(line      );
-
+trellis=trell(4);
 
 %% Simulation
 for iSNR = 1:length(EbN0dB)
@@ -124,7 +125,7 @@ for iSNR = 1:length(EbN0dB)
         %% Emetteur
         tx_tic  = tic;                 % Mesure du débit d'encodage
         u       = randi([0,1],K,1);    % Génération du message aléatoire
-        c       = u;                   % Encodage
+        c       = cc_encode(u,trellis);                   % Encodage
         x       = 1-2*c;               % Modulation QPSK
         T_tx    = T_tx+toc(tx_tic);    % Mesure du débit d'encodage
         debitTX = pqtNbr*K/8/T_tx/1e6;
@@ -136,9 +137,9 @@ for iSNR = 1:length(EbN0dB)
         %% Recepteur
         rx_tic = tic;                  % Mesure du débit de décodage
         Lc      = 2*y/sigmaz2(iSNR);   % Démodulation (retourne des LLRs)
-        u_rec   = double(Lc(1:K) < 0); % Message reçu
-        
-        BE      = sum(u(:) ~= u_rec(:)); % Nombre de bits faux sur cette trame
+        %u_rec   = double(Lc(1:K) < 0); % Message reçu
+        u_rec   = viterbi_decode(Lc,trellis);
+        BE      = sum(u(:).' ~= u_rec(1:K)); % Nombre de bits faux sur cette trame
         bitErr  = bitErr + BE;
         pqtErr  = pqtErr + double(BE>0);
         T_rx    = T_rx + toc(rx_tic);  % Mesure du débit de décodage
