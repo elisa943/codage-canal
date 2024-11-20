@@ -71,8 +71,7 @@ function u = viterbi_decode(y, treillis)
         end
         indice=indice+1;
     end
-    disp(predecessors)
-    disp(branches)
+    
     % Chemin inverse
     u = [];
     [~, state_2] = min(branches(:, L+m));                                       % état final
