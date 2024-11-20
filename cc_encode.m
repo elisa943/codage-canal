@@ -12,7 +12,7 @@ function c=cc_encode(u,trellis)
         c(2*(i+1))=sortie(2);
         etat=trellis.nextStates(etat+1,u(i+1)+1);
     end
-    for j=K:K+2
+    for j=K:K+m-1
         sortie=int2bit(trellis.nextStates(etat+1,1),2);
         c(2*j+1)=sortie(1);
         c(2*(j+1))=sortie(2);

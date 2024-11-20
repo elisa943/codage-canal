@@ -60,7 +60,7 @@ function u = viterbi_decode(y, treillis)
         for i = (find(branches(:,indice - 1) ~= inf)).'                                     % Pour chaque état déjà atteint (à l'itération précédente)
             next_state = etat_fermeture(i);                                                 % prochain état
             output_bits = int2bit(outputs(i, j), ns).';                                     % output en bits
-            cout = sum((y(ns * (indice - 2) + 1 : ns * (indice - 1)) - output_bits));       
+            cout = sum((y(ns * (indice - 2) + 1 : ns * (indice - 1)) .* output_bits'));       
             nouveau_cout = branches(i,indice-1) + cout;                                     % nouveau coût   
             
             % Mise à jour 
