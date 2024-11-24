@@ -11,21 +11,43 @@ function c=cc_encode(u,trellis)
     
     % Gestion de la fermeture 
     etat_fermeture = ones(1,pow2(m));
+    etat_fermee_t = zeros(1,pow2(m));
     for i=1:pow2(m)
         if nextStates(i,1)==0 || nextStates(i,2)==0
             etat_fermeture(i)=0;
+            etat_fermee_t(i)=1;
+        end
+    end
+    for k=2:m
+        for i=1:pow2(m)
+            if etat_fermee_t(i)==0
+                for j=1:2
+                    if etat_fermee_t(nextStates(i,j))>0 && etat_fermee_t(nextStates(i,j))<k
+                        etat_fermeture(i)=nextStates(i,j);
+                        etat_fermee_t(i)=k;
+                    end
+                end
+            end
         end
     end
 
-    % Encodage
     for i=0:K-1
-        sortie      = int2bit(outputs(etat+1,u(i+1)+1).',ns);
-        c(ns*i+1)   = sortie(1);
-        c(ns*(i+1)) = sortie(2);
-        etat        = nextStates(etat+1,u(i+1)+1);
+        sortie=int2bit(outputs(etat+1,u(i+1)+1).',ns);
+        c(ns*i+1)=sortie(1);
+        c(ns*(i+1))=sortie(2);
+        etat=nextStates(etat+1,u(i+1)+1);
     end
 
-    % Fermeture    
+    % Fermeture
+    %{
+    for j=K:L-1
+        sortie=int2bit(nextStates(etat+1,1),ns);
+        c(ns*j+1)=sortie(1);
+        c(ns*(j+1))=sortie(2);
+        etat=outputs(etat+1,1);
+    end
+    %} 
+    
     for j=K:L-1
         next_etat   = etat_fermeture(etat + 1);
         output_bits = int2bit(outputs(etat + 1, StateToState(nextStates,etat + 1,next_etat+1)+1), ns).';
